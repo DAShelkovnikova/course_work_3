@@ -6,42 +6,25 @@ import datetime
 # Функции:
 def read_json_file(name):
     """Берет данные из json файла"""
-    with open(name, "r") as file:
+    with open(name, "r", encoding="utf-8") as file:
         data = json.load(file)
     return data
 
+def get_executed_operations(operations):
+    executed_operations = []
+    for operation in operations:
+        if operation.get("state") == "EXECUTED":
+            executed_operations.append(operation)
+    return executed_operations
 
-def data_time_information(operation_date):
-    """Возвращает информацию о дате и времени последних 5 операций"""
-    date_of_operation = []
-    for operations in operation_date:
-        try:
-            if operations["state"] == "EXECUTED":
-                date_of_operation.append(datetime.datetime.fromisoformat(operations["date"]))
-        except KeyError:
-            continue
-    return sorted(date_of_operation)[-5:]
-
-
-def last_five_operations(list_operations, last_five_datetime):
-    """Возвращает информацию о последних 5 операциях"""
-    last_five = []
-    for operation in list_operations:
-        try:
-            if datetime.datetime.fromisoformat(operation["date"]) in last_five_datetime:
-                last_five.append(operation)
-        except KeyError:
-            continue
-    return last_five
-
-
-def sorted_last_five_operation(last_five_operations):
-    """Сортирует последние 5 операций в порядке убывания начиная с последней"""
-    last_five = last_five_operations
-    for every in last_five:
+def get_sorted_operations(operations):
+    for every in operations:
         every["date"] = datetime.datetime.fromisoformat(every["date"])
-    sorted_last_five = sorted(last_five, key=lambda x: x["date"], reverse=True)
-    return sorted_last_five
+    sorted_operations = sorted(operations, key=lambda x: x["date"], reverse=True)
+    return sorted_operations
+
+def get_five_operations(list_operations):
+    return list_operations[:5]
 
 
 def encrypys_number(string_number):
