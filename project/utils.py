@@ -1,4 +1,3 @@
-# Импортируем модули:
 import json
 import datetime
 
@@ -10,20 +9,26 @@ def read_json_file(name):
         data = json.load(file)
     return data
 
+
 def get_executed_operations(operations):
+    """Возвращает список операций с состоянием EXECUTED"""
     executed_operations = []
     for operation in operations:
         if operation.get("state") == "EXECUTED":
             executed_operations.append(operation)
     return executed_operations
 
+
 def get_sorted_operations(operations):
+    """Возвращает отсортированный списаок операций по дате"""
     for every in operations:
         every["date"] = datetime.datetime.fromisoformat(every["date"])
     sorted_operations = sorted(operations, key=lambda x: x["date"], reverse=True)
     return sorted_operations
 
+
 def get_five_operations(list_operations):
+    """Возвращает список из последних 5 операций"""
     return list_operations[:5]
 
 

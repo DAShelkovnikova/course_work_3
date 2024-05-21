@@ -1,10 +1,8 @@
-# Тесты функций pytest:
-import datetime
+
 import os
 import pytest
-from project.utils import (read_json_file, data_time_information,
-                             last_five_operations, sorted_last_five_operation,
-                             encrypys_number)
+from project.utils import (get_executed_operations, read_json_file, get_sorted_operations, get_five_operations,
+                           encrypys_number)
 
 
 @pytest.fixture
@@ -22,54 +20,225 @@ def test_read_json_file():
     ]
 
 
-def test_data_time_information(test_function):
-    assert data_time_information(read_json_file(test_function)) == [datetime.datetime(2019, 11, 5, 12, 4, 13, 781725),
-                                                      datetime.datetime(2019, 11, 13, 17, 38, 4, 800051),
-                                                      datetime.datetime(2019, 11, 19, 9, 22, 25, 899614),
-                                                      datetime.datetime(2019, 12, 7, 6, 17, 14, 634890),
-                                                      datetime.datetime(2019, 12, 8, 22, 46, 21, 935582)]
+def test_get_executed_operations():
+    operations = [
+        {
+            "state": "EXECUTED"
+        },
+        {
+            "state": "CANCELED"
+        },
+        {},
+        {
+            "state": "EXECUTED"
+        },
+    ]
+
+    expected_result = [
+        {
+            "state": "EXECUTED"
+        },
+        {
+            "state": "EXECUTED"
+        },
+    ]
+
+    executed_operations = get_executed_operations(operations)
+    assert executed_operations == expected_result
 
 
-def test_last_five_operations(test_function):
-    assert last_five_operations(read_json_file(test_function), data_time_information(read_json_file(test_function))) == [
-        {'id': 863064926, 'state': 'EXECUTED', 'date': '2019-12-08T22:46:21.935582',
-         'operationAmount': {'amount': '41096.24', 'currency': {'name': 'USD', 'code': 'USD'}},
-         'description': 'Открытие вклада', 'to': 'Счет 90424923579946435907'},
-        {'id': 801684332, 'state': 'EXECUTED', 'date': '2019-11-05T12:04:13.781725',
-         'operationAmount': {'amount': '21344.35', 'currency': {'name': 'руб.', 'code': 'RUB'}},
-         'description': 'Открытие вклада', 'to': 'Счет 77613226829885488381'},
-        {'id': 154927927, 'state': 'EXECUTED', 'date': '2019-11-19T09:22:25.899614',
-         'operationAmount': {'amount': '30153.72', 'currency': {'name': 'руб.', 'code': 'RUB'}},
-         'description': 'Перевод организации', 'from': 'Maestro 7810846596785568', 'to': 'Счет 43241152692663622869'},
-        {'id': 114832369, 'state': 'EXECUTED', 'date': '2019-12-07T06:17:14.634890',
-         'operationAmount': {'amount': '48150.39', 'currency': {'name': 'USD', 'code': 'USD'}},
-         'description': 'Перевод организации', 'from': 'Visa Classic 2842878893689012',
-         'to': 'Счет 35158586384610753655'},
-        {'id': 482520625, 'state': 'EXECUTED', 'date': '2019-11-13T17:38:04.800051',
-         'operationAmount': {'amount': '62814.53', 'currency': {'name': 'руб.', 'code': 'RUB'}},
-         'description': 'Перевод со счета на счет', 'from': 'Счет 38611439522855669794',
-         'to': 'Счет 46765464282437878125'}]
+def test_get_sorted_operations():
+    operations = [
+        {
+            "pk": 1,
+            "date": "2019-08-26T10:50:58.294041",
+        },
+        {
+            "pk": 2,
+            "date": "2018-06-30T02:08:58.425572",
+        },
+        {
+            "pk": 3,
+            "date": "2019-07-03T18:35:29.512364",
+        },
+    ]
+
+    sorted_operations = get_sorted_operations(operations)
+    assert len(sorted_operations) == 3
+    assert sorted_operations[0]["pk"] == 1
+    assert sorted_operations[1]["pk"] == 3
+    assert sorted_operations[2]["pk"] == 2
 
 
-def test_sorted_last_five_operation(test_function):
-    assert sorted_last_five_operation(last_five_operations(read_json_file(test_function), data_time_information(read_json_file(test_function)))) == [
-        {'id': 863064926, 'state': 'EXECUTED', 'date': datetime.datetime(2019, 12, 8, 22, 46, 21, 935582),
-         'operationAmount': {'amount': '41096.24', 'currency': {'name': 'USD', 'code': 'USD'}},
-         'description': 'Открытие вклада', 'to': 'Счет 90424923579946435907'},
-        {'id': 114832369, 'state': 'EXECUTED', 'date': datetime.datetime(2019, 12, 7, 6, 17, 14, 634890),
-         'operationAmount': {'amount': '48150.39', 'currency': {'name': 'USD', 'code': 'USD'}},
-         'description': 'Перевод организации', 'from': 'Visa Classic 2842878893689012',
-         'to': 'Счет 35158586384610753655'},
-        {'id': 154927927, 'state': 'EXECUTED', 'date': datetime.datetime(2019, 11, 19, 9, 22, 25, 899614),
-         'operationAmount': {'amount': '30153.72', 'currency': {'name': 'руб.', 'code': 'RUB'}},
-         'description': 'Перевод организации', 'from': 'Maestro 7810846596785568', 'to': 'Счет 43241152692663622869'},
-        {'id': 482520625, 'state': 'EXECUTED', 'date': datetime.datetime(2019, 11, 13, 17, 38, 4, 800051),
-         'operationAmount': {'amount': '62814.53', 'currency': {'name': 'руб.', 'code': 'RUB'}},
-         'description': 'Перевод со счета на счет', 'from': 'Счет 38611439522855669794',
-         'to': 'Счет 46765464282437878125'},
-        {'id': 801684332, 'state': 'EXECUTED', 'date': datetime.datetime(2019, 11, 5, 12, 4, 13, 781725),
-         'operationAmount': {'amount': '21344.35', 'currency': {'name': 'руб.', 'code': 'RUB'}},
-         'description': 'Открытие вклада', 'to': 'Счет 77613226829885488381'}]
+def test_get_five_operations():
+    operations = [
+        {
+            "id": 441945886,
+            "state": "EXECUTED",
+            "date": "2019-08-26T10:50:58.294041",
+            "operationAmount": {
+                "amount": "31957.58",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB"
+                }
+            },
+            "description": "Перевод организации",
+            "from": "Maestro 1596837868705199",
+            "to": "Счет 64686473678894779589"
+        },
+        {
+            "id": 41428829,
+            "state": "EXECUTED",
+            "date": "2019-07-03T18:35:29.512364",
+            "operationAmount": {
+                "amount": "8221.37",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD"
+                }
+            },
+            "description": "Перевод организации",
+            "from": "MasterCard 7158300734726758",
+            "to": "Счет 35383033474447895560"
+        },
+        {
+            "id": 939719570,
+            "state": "EXECUTED",
+            "date": "2018-06-30T02:08:58.425572",
+            "operationAmount": {
+                "amount": "9824.07",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD"
+                }
+            },
+            "description": "Перевод организации",
+            "from": "Счет 75106830613657916952",
+            "to": "Счет 11776614605963066702"
+        },
+        {
+            "id": 587085106,
+            "state": "EXECUTED",
+            "date": "2018-03-23T10:45:06.972075",
+            "operationAmount": {
+                "amount": "48223.05",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB"
+                }
+            },
+            "description": "Открытие вклада",
+            "to": "Счет 41421565395219882431"
+        },
+        {
+            "id": 142264268,
+            "state": "EXECUTED",
+            "date": "2019-04-04T23:20:05.206878",
+            "operationAmount": {
+                "amount": "79114.93",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD"
+                }
+            },
+            "description": "Перевод со счета на счет",
+            "from": "Счет 19708645243227258542",
+            "to": "Счет 75651667383060284188"
+        },
+        {
+            "id": 873106923,
+            "state": "EXECUTED",
+            "date": "2019-03-23T01:09:46.296404",
+            "operationAmount": {
+                "amount": "43318.34",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB"
+                }
+            },
+            "description": "Перевод со счета на счет",
+            "from": "Счет 44812258784861134719",
+            "to": "Счет 74489636417521191160"
+        }, ]
+
+    result_five_operations = [{
+        "id": 441945886,
+        "state": "EXECUTED",
+        "date": "2019-08-26T10:50:58.294041",
+        "operationAmount": {
+            "amount": "31957.58",
+            "currency": {
+                "name": "руб.",
+                "code": "RUB"
+            }
+        },
+        "description": "Перевод организации",
+        "from": "Maestro 1596837868705199",
+        "to": "Счет 64686473678894779589"
+    },
+        {
+            "id": 41428829,
+            "state": "EXECUTED",
+            "date": "2019-07-03T18:35:29.512364",
+            "operationAmount": {
+                "amount": "8221.37",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD"
+                }
+            },
+            "description": "Перевод организации",
+            "from": "MasterCard 7158300734726758",
+            "to": "Счет 35383033474447895560"
+        },
+        {
+            "id": 939719570,
+            "state": "EXECUTED",
+            "date": "2018-06-30T02:08:58.425572",
+            "operationAmount": {
+                "amount": "9824.07",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD"
+                }
+            },
+            "description": "Перевод организации",
+            "from": "Счет 75106830613657916952",
+            "to": "Счет 11776614605963066702"
+        },
+        {
+            "id": 587085106,
+            "state": "EXECUTED",
+            "date": "2018-03-23T10:45:06.972075",
+            "operationAmount": {
+                "amount": "48223.05",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB"
+                }
+            },
+            "description": "Открытие вклада",
+            "to": "Счет 41421565395219882431"
+        },
+        {
+            "id": 142264268,
+            "state": "EXECUTED",
+            "date": "2019-04-04T23:20:05.206878",
+            "operationAmount": {
+                "amount": "79114.93",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD"
+                }
+            },
+            "description": "Перевод со счета на счет",
+            "from": "Счет 19708645243227258542",
+            "to": "Счет 75651667383060284188"
+        }, ]
+
+    get_five_operations(operations)
+    assert result_five_operations == get_five_operations
 
 
 def test_encrypys_number():
